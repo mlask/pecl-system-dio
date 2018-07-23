@@ -815,6 +815,16 @@ ZEND_BEGIN_ARG_INFO_EX(dio_serial_args, 0, 0, 2)
 	ZEND_ARG_INFO(0, options)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(stream_set_baudrate_args, 0, 0, 2)
+	ZEND_ARG_INFO(0, stream)
+	ZEND_ARG_INFO(0, baudrate)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(stream_select_timeout_args, 0, 0, 2)
+	ZEND_ARG_INFO(0, timeout_sec)
+	ZEND_ARG_INFO(0, timeout_usec)
+ZEND_END_ARG_INFO()
+
 /* not used static zend_object_handlers dio_raw_object_handlers; */
 
 static zend_function_entry dio_functions[] = {
@@ -842,6 +852,8 @@ static zend_function_entry dio_functions[] = {
 	/* Stream functions */
 	PHP_FE(dio_raw, dio_raw_args)
 	PHP_FE(dio_serial, dio_serial_args)
+	PHP_FE(stream_set_baudrate, stream_set_baudrate_args)
+	PHP_FE(stream_select_timeout, stream_select_timeout_args)
 
 	/* End of functions */
 	{NULL, NULL, NULL}
@@ -853,7 +865,7 @@ zend_module_entry dio_module_entry = {
 	dio_functions,
 	PHP_MINIT(dio),
 	NULL,
-	NULL,	
+	NULL,
 	NULL,
 	PHP_MINFO(dio),
 	PHP_DIO_VERSION,

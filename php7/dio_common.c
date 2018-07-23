@@ -41,7 +41,7 @@ void dio_init_stream_data(php_dio_stream_data *data) {
 	data->timeout_sec = 0;
 	data->timeout_usec = 0;
 	data->timed_out = 0;
-	data->file_flags = 0;
+	data->open_flags = 0;
 #endif
 	/* Serial options */
 	data->data_rate = 9600;
@@ -137,8 +137,8 @@ void dio_assoc_array_get_serial_options(zval *options, php_dio_stream_data *data
 	if ((tmpzval = zend_hash_str_find(opthash, "read_vtime", sizeof("read_vtime") -1)) != NULL) {
 		data->read_vtime = (int)zval_get_long(tmpzval);
 	}
-	if ((tmpzval = zend_hash_str_find(opthash, "file_flags", sizeof("file_flags") -1)) != NULL) {
-		data->file_flags = (int)zval_get_long(tmpzval);
+	if ((tmpzval = zend_hash_str_find(opthash, "open_flags", sizeof("open_flags") -1)) != NULL) {
+		data->open_flags = (int)zval_get_long(tmpzval);
 	}
 }
 /* }}} */
@@ -221,8 +221,8 @@ void dio_stream_context_get_serial_options(php_stream_context *context, php_dio_
 		data->read_vtime = (int)zval_get_long(tmpzval);
 	}
 
-	if ((tmpzval = php_stream_context_get_option(context, "dio", "file_flags")) != NULL) {
-		data->file_flags = (int)zval_get_long(tmpzval);
+	if ((tmpzval = php_stream_context_get_option(context, "dio", "open_flags")) != NULL) {
+		data->open_flags = (int)zval_get_long(tmpzval);
 	}
 }
 /* }}} */

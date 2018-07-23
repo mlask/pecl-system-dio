@@ -27,6 +27,13 @@
 #include "php_dio_common.h"
 #include "php_dio_stream_wrappers.h"
 
+static int d_stream;
+#define D_STREAM "DIO Stream"
+#if PHP_MAJOR_VERSION >= 7
+    #define ZEND_FETCH_RESOURCE(rsrc, rsrc_type, passed_id, default_id, resource_type_name, resource_type) \
+        (rsrc = (rsrc_type) zend_fetch_resource(Z_RES_P(*passed_id), resource_type_name, resource_type))
+#endif
+
 /*
    +----------------------------------------------------------------------+
    | Raw stream handling                                                  |
@@ -375,6 +382,7 @@ PHP_FUNCTION(dio_serial) {
 	size_t filename_len;
 	char *mode;
 	size_t mode_len;
+printf("dio_serial\n");
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ss|z", &filename, &filename_len, &mode, &mode_len, &options) == FAILURE) {
 		RETURN_FALSE;
@@ -408,6 +416,146 @@ PHP_FUNCTION(dio_serial) {
 		}
 		php_stream_to_zval(stream, return_value);
 	}
+}
+/* }}} */
+
+static int dio_data_rate_to_define(long rate, speed_t *def) {
+	speed_t val;
+
+	switch (rate) {
+		case 0:
+			val = 0;
+			break;
+		case 50:
+			val = B50;
+			break;
+		case 75:
+			val = B75;
+			break;
+		case 110:
+			val = B110;
+			break;
+		case 134:
+			val = B134;
+			break;
+		case 150:
+			val = B150;
+			break;
+		case 200:
+			val = B200;
+			break;
+		case 300:
+			val = B300;
+			break;
+		case 600:
+			val = B600;
+			break;
+		case 1200:
+			val = B1200;
+			break;
+		case 1800:
+			val = B1800;
+			break;
+		case 2400:
+			val = B2400;
+			break;
+		case 4800:
+			val = B4800;
+			break;
+		case 9600:
+			val = B9600;
+			break;
+		case 19200:
+			val = B19200;
+			break;
+		case 38400:
+			val = B38400;
+			break;
+#ifdef B57600
+		case 57600:
+			val = B57600;
+			break;
+#endif
+#ifdef B115200
+		case 115200:
+			val = B115200;
+			break;
+#endif
+#ifdef B230400
+		case 230400:
+			val = B230400;
+			break;
+#endif
+#ifdef B460800
+		case 460800:
+			val = B460800;
+			break;
+#endif
+		default:
+			return 0;
+	}
+
+	*def = val;
+	return 1;
+}
+
+/* {{{ proto stream_set_baudrate(resource stream, int baudrate)
+ * Sets stream baudrate in runtime.
+ */
+PHP_FUNCTION(stream_set_baudrate) {
+	zval *zstream;
+	zend_long baudrate;
+	php_stream *stream;
+	struct termios tio;
+	speed_t rate_def;
+	int ret = 0;
+
+	ZEND_PARSE_PARAMETERS_START(2, 2)
+		Z_PARAM_RESOURCE(zstream)
+		Z_PARAM_LONG(baudrate)
+	ZEND_PARSE_PARAMETERS_END();
+
+	php_stream_from_zval(stream, zstream);
+
+	if (!dio_data_rate_to_define(baudrate, &rate_def)) {
+		php_error_docref(NULL, E_WARNING, "invalid data_rate value (%ld)", baudrate);
+		RETURN_FALSE;
+	}
+
+	php_dio_stream_data *data = (php_dio_stream_data*)stream->abstract;
+	php_dio_posix_stream_data *pdata = (php_dio_posix_stream_data*)data;
+	ret = tcgetattr(pdata->fd, &tio);
+	if (ret < 0) {
+		RETURN_FALSE;
+	}
+
+	cfsetispeed(&tio, rate_def);
+	cfsetospeed(&tio, rate_def);
+
+	ret = tcsetattr(pdata->fd, TCSANOW, &tio);
+	if (ret < 0) {
+		RETURN_FALSE;
+	}
+
+	RETURN_TRUE;
+}
+/* }}} */
+
+/* {{{ proto stream_select_timeout(long timeout_sec, long timeout_usec)
+ * Perform stream_select without file descriptors.
+ */
+PHP_FUNCTION(stream_select_timeout) {
+	zend_long timeout_sec, timeout_usec;
+	struct timeval timeout;
+
+	ZEND_PARSE_PARAMETERS_START(2, 2)
+		Z_PARAM_LONG(timeout_sec)
+		Z_PARAM_LONG(timeout_usec)
+	ZEND_PARSE_PARAMETERS_END();
+
+	timeout.tv_sec  = timeout_sec;
+	timeout.tv_usec = timeout_usec;
+	select(0, NULL, NULL, NULL, &timeout);
 }
 /* }}} */
 
