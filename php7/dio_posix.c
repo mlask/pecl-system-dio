@@ -485,8 +485,8 @@ int dio_raw_open_stream(const char *filename, const char *mode, php_dio_stream_d
 #endif
 
 	/* Additional flags */
-	if (data->file_flags > 0) {
-		pdata->flags |= data->file_flags;
+	if (data->open_flags > 0) {
+		pdata->flags |= data->open_flags;
 	}
 
 	/* Open the file and handle any errors. */
