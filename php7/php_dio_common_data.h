@@ -37,6 +37,7 @@ typedef struct _php_dio_stream_data {
 	long timeout_sec;
 	long timeout_usec;
 	int timed_out;
+	int file_flags;
 #endif
 	/* Serial options */
 	long data_rate;
@@ -45,6 +46,8 @@ typedef struct _php_dio_stream_data {
 	int parity;
 	int flow_control;
 	int canonical;
+	int read_vmin;
+	int read_vtime;
 } php_dio_stream_data ;
 
 #endif /* PHP_DIO_COMMON_DATA_H_ */

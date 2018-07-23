@@ -271,6 +271,23 @@ static int dio_serial_stream_close(php_stream *stream, int close_handle)
 }
 /* }}} */
 
+static int dio_stream_cast(php_stream *stream, int cast_as, void **ret)
+{
+	php_dio_stream_data *data = (php_dio_stream_data*)stream->abstract;
+	php_dio_posix_stream_data *pdata = (php_dio_posix_stream_data*)data;
+
+	switch (cast_as)	{
+		case PHP_STREAM_AS_FD_FOR_SELECT:
+		case PHP_STREAM_AS_FD:
+			if (ret) {
+				*(int *)ret = pdata->fd;
+			}
+			return SUCCESS;
+		default:
+			return FAILURE;
+	}
+}
+
 php_stream_ops dio_serial_stream_ops = {
 	dio_stream_write,
 	dio_stream_read,
@@ -278,7 +295,7 @@ php_stream_ops dio_serial_stream_ops = {
 	dio_serial_stream_flush,
 	"dio",
 	NULL, /* seek */
-	NULL, /* cast */
+	dio_stream_cast,//NULL, /* cast */
 	NULL, /* stat */
 	dio_stream_set_option,
 };

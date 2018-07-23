@@ -41,6 +41,7 @@ void dio_init_stream_data(php_dio_stream_data *data) {
 	data->timeout_sec = 0;
 	data->timeout_usec = 0;
 	data->timed_out = 0;
+	data->file_flags = 0;
 #endif
 	/* Serial options */
 	data->data_rate = 9600;
@@ -49,6 +50,8 @@ void dio_init_stream_data(php_dio_stream_data *data) {
 	data->parity = 0;
 	data->flow_control = 1;
 	data->canonical = 1;
+	data->read_vmin = 1;
+	data->read_vtime = 0;
 }
 /* }}} */
 
@@ -128,6 +131,15 @@ void dio_assoc_array_get_serial_options(zval *options, php_dio_stream_data *data
 	if ((tmpzval = zend_hash_str_find(opthash, "is_canonical", sizeof("is_canonical") -1)) != NULL) {
 		data->canonical = (int)(zval_get_long(tmpzval) ? 1 : 0);
 	}
+	if ((tmpzval = zend_hash_str_find(opthash, "read_vmin", sizeof("read_vmin") -1)) != NULL) {
+		data->read_vmin = (int)zval_get_long(tmpzval);
+	}
+	if ((tmpzval = zend_hash_str_find(opthash, "read_vtime", sizeof("read_vtime") -1)) != NULL) {
+		data->read_vtime = (int)zval_get_long(tmpzval);
+	}
+	if ((tmpzval = zend_hash_str_find(opthash, "file_flags", sizeof("file_flags") -1)) != NULL) {
+		data->file_flags = (int)zval_get_long(tmpzval);
+	}
 }
 /* }}} */
 
@@ -199,6 +211,18 @@ void dio_stream_context_get_serial_options(php_stream_context *context, php_dio_
 
 	if ((tmpzval = php_stream_context_get_option(context, "dio", "is_canonical")) != NULL) {
 		data->canonical = (int)(zval_get_long(tmpzval) ? 1 : 0);
+	}
+
+	if ((tmpzval = php_stream_context_get_option(context, "dio", "read_vmin")) != NULL) {
+		data->read_vmin = (int)zval_get_long(tmpzval);
+	}
+
+	if ((tmpzval = php_stream_context_get_option(context, "dio", "read_vtime")) != NULL) {
+		data->read_vtime = (int)zval_get_long(tmpzval);
+	}
+
+	if ((tmpzval = php_stream_context_get_option(context, "dio", "file_flags")) != NULL) {
+		data->file_flags = (int)zval_get_long(tmpzval);
 	}
 }
 /* }}} */

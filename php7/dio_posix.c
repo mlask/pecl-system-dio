@@ -484,6 +484,11 @@ int dio_raw_open_stream(const char *filename, const char *mode, php_dio_stream_d
 	}
 #endif
 
+	/* Additional flags */
+	if (data->file_flags > 0) {
+		pdata->flags |= data->file_flags;
+	}
+
 	/* Open the file and handle any errors. */
 #ifdef DIO_HAS_FILEPERMS
 	if (data->has_perms) {
@@ -557,6 +562,7 @@ static int dio_serial_init(php_dio_stream_data *data) {
 		tio.c_lflag = ICANON;
 	} else {
 		cfmakeraw(&tio);
+		tio.c_iflag = 1;
 	}
 
 	cfsetispeed(&tio, rate_def);
@@ -581,6 +587,9 @@ static int dio_serial_init(php_dio_stream_data *data) {
 		tio.c_cflag |= CRTSCTS;
 #endif
 	}
+	
+	tio.c_cc[VTIME] = data->read_vtime;
+	tio.c_cc[VMIN] = data->read_vmin;
 
 	ret = tcsetattr(pdata->fd, TCSANOW, &tio);
 	if (ret < 0) {
