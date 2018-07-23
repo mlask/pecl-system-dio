@@ -382,7 +382,6 @@ PHP_FUNCTION(dio_serial) {
 	size_t filename_len;
 	char *mode;
 	size_t mode_len;
-printf("dio_serial\n");
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ss|z", &filename, &filename_len, &mode, &mode_len, &options) == FAILURE) {
 		RETURN_FALSE;
